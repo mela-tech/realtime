@@ -209,14 +209,15 @@ jobs:
         if: env.VERSION_BEFORE != env.VERSION_AFTER
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Upload build to Docker Hub
+      - name: Upload build to GCR
         if: env.VERSION_BEFORE != env.VERSION_AFTER
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: supabase/realtime:latest,supabase/realtime:v${{ env.VERSION_AFTER }}
+          tags: realtime:latest,realtime:v${{ env.VERSION_AFTER }}
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/amd64,linux/arm64
