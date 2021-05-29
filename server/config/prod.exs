@@ -1,6 +1,6 @@
 use Mix.Config
 
-realtime_host = System.get_env("REALTIME_HOST", "localhost")
+realtime_hosts = String.split(System.get_env("REALTIME_HOSTS"), ",") || false
 
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
@@ -14,7 +14,7 @@ realtime_host = System.get_env("REALTIME_HOST", "localhost")
 config :realtime, RealtimeWeb.Endpoint,
   load_from_system_env: true,
   server: true,
-  check_origin: [realtime_host]
+  check_origin: realtime_hosts
 
 # Do not print debug messages in production
 config :logger, level: :info

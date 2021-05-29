@@ -198,7 +198,7 @@ PORT                    # {number}      Port which you can connect your client/l
 SECURE_CHANNELS         # {string}      (options: 'true'/'false') Enable/Disable channels authorization via JWT verification.
 JWT_SECRET              # {string}      HS algorithm octet key (e.g. "95x0oR8jq9unl9pOIx"). Only required if SECURE_CHANNELS is set to true.
 JWT_CLAIM_VALIDATORS    # {string}      Expected claim key/value pairs compared to JWT claims via equality checks in order to validate JWT. e.g. '{"iss": "Issuer", "nbf": 1610078130}'. This is optional but encouraged.
-REALTIME_HOST           # {string}      Host name with scheme to set allowed origin to in production
+REALTIME_HOSTS           # {string}      Host names with scheme to set allowed origins in production
 ```
 
 **EXAMPLE: RUNNING SERVER WITH ALL OPTIONS**
