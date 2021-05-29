@@ -1,5 +1,7 @@
 use Mix.Config
 
+realtime_host = System.get_env("REALTIME_HOST", "localhost")
+
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
 # when generating URLs.
@@ -11,7 +13,8 @@ use Mix.Config
 # before starting your production server.
 config :realtime, RealtimeWeb.Endpoint,
   load_from_system_env: true,
-  server: true
+  server: true,
+  check_origin: [realtime_host]
 
 # Do not print debug messages in production
 config :logger, level: :info
