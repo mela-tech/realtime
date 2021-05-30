@@ -1,6 +1,14 @@
 defmodule RealtimeWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :realtime
 
+  def init(:supervisor, config) do
+    if realtime_hosts = System.get_env("REALTIME_HOSTS") do
+      {:ok, Keyword.put(config, :check_origin, String.split(realtime_hosts, ","))}
+    else
+      {:ok, config}
+    end
+  end
+
   socket "/socket", RealtimeWeb.UserSocket,
     websocket: true,
     longpoll: false
