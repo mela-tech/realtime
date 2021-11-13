@@ -21,6 +21,8 @@ defmodule Realtime.Application do
     # `select * from pg_replication_slots`
     slot_name = Application.get_env(:realtime, :slot_name)
 
+    max_replication_lag_in_mb = Application.fetch_env!(:realtime, :max_replication_lag_in_mb)
+
     publications = Application.get_env(:realtime, :publications) |> Jason.decode!()
 
     epgsql_params = %{
@@ -29,7 +31,8 @@ defmodule Realtime.Application do
       database: Application.fetch_env!(:realtime, :db_name),
       password: Application.fetch_env!(:realtime, :db_password),
       port: Application.fetch_env!(:realtime, :db_port),
-      ssl: Application.fetch_env!(:realtime, :db_ssl)
+      ssl: Application.fetch_env!(:realtime, :db_ssl),
+      application_name: "realtime",
     }
 
     epgsql_params =
@@ -59,8 +62,22 @@ defmodule Realtime.Application do
       end
     end
 
+    def_headers = Application.fetch_env!(:realtime, :webhook_default_headers)
+
+    headers =
+      with {:ok, env_val} <- Application.fetch_env(:realtime, :webhook_headers),
+           {:ok, decoded_headers} <- Realtime.Helpers.env_kv_to_list(env_val, def_headers) do
+        decoded_headers
+      else
+        _ -> def_headers
+      end
+
+    Application.put_env(:realtime, :webhook_headers, headers)
+
     # List all child processes to be supervised
     children = [
+      Realtime.Metrics.PromEx,
+      Realtime.Metrics.SocketMonitor,
       # Start the endpoint when the application starts
       RealtimeWeb.Endpoint,
       {
@@ -78,7 +95,8 @@ defmodule Realtime.Application do
         epgsql_params: epgsql_params,
         publications: publications,
         slot_name: slot_name,
-        wal_position: {"0", "0"}
+        wal_position: {"0", "0"},
+        max_replication_lag_in_mb: max_replication_lag_in_mb
       }
     ]
 

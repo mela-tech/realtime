@@ -18,11 +18,9 @@
   </p>
 </p>
 
-
 ## Hiring
 
 Supabase is hiring Elixir experts to work full-time on this repo. If you have the experience, [apply online](https://supabase.io/docs/careers).
-
 
 ## Project Status
 
@@ -34,7 +32,6 @@ Supabase is hiring Elixir experts to work full-time on this repo. If you have th
 This repo is still under heavy development and the documentation is constantly evolving. You're welcome to try it, but expect some breaking changes. Watch "releases" of this repo to get notified of major updates. And give us a star if you like it!
 
 [![Watch this repo][watch-repo-gif]][watch-repo-url]
-
 
 ## Introduction
 
@@ -77,14 +74,12 @@ We have set up some simple examples that show how to use this server:
 - [Next.js example](https://github.com/supabase/realtime/tree/master/examples/next-js)
 - [NodeJS example](https://github.com/supabase/realtime/tree/master/examples/node-js)
 
-
 ## Client libraries
 
 - Javascript: [@supabase/realtime-js](https://github.com/supabase/realtime-js)
 - Python: [@supabase/realtime-py](https://github.com/supabase/realtime-py)
 - Dart: [@supabase/realtime-dart](https://github.com/supabase/realtime-dart)
 - C#: [@supabase/realtime-csharp](https://github.com/supabase/realtime-csharp)
-
 
 ## Event Filters with Examples
 
@@ -94,17 +89,18 @@ We have set up some simple examples that show how to use this server:
 - [@supabase/realtime-js](https://github.com/supabase/realtime-js) installed locally
 
 ```js
-import { Socket } = '@supabase/realtime-js'
+import { RealtimeClient } = '@supabase/realtime-js'
 
-var socket = new Socket(process.env.REALTIME_URL || 'ws://localhost:4000/socket')
+var socket = new RealtimeClient(process.env.REALTIME_URL || 'ws://localhost:4000/socket')
 socket.connect()
 ```
 
 ### Supported event types
-  - `*`
-  - `INSERT`
-  - `UPDATE`
-  - `DELETE`
+
+- `*`
+- `INSERT`
+- `UPDATE`
+- `DELETE`
 
 ### Supported event filters
 
@@ -114,9 +110,11 @@ socket.connect()
 ```js
 // Listen to all deletes in database
 var allChanges = socket
-  .channel('realtime:*')
+  .channel("realtime:*")
   .join()
-  .on('DELETE', payload => { console.log('Delete received!', payload) })
+  .on("DELETE", (payload) => {
+    console.log("Delete received!", payload);
+  });
 ```
 
 - Listen to a specific schema's changes
@@ -125,9 +123,11 @@ var allChanges = socket
 ```js
 // Listen to all inserts from the 'public' schema
 var allPublicInsertChanges = socket
-  .channel('realtime:public')
+  .channel("realtime:public")
   .join()
-  .on('INSERT', payload => { console.log('Insert received!', payload) })
+  .on("INSERT", (payload) => {
+    console.log("Insert received!", payload);
+  });
 ```
 
 - Listen to a specific table's changes
@@ -136,9 +136,11 @@ var allPublicInsertChanges = socket
 ```js
 // Listen to all updates on the 'users' table in the 'public' schema
 var allUsersUpdateChanges = socket
-  .channel('realtime:public:users')
+  .channel("realtime:public:users")
   .join()
-  .on('UPDATE', payload => { console.log('Update received!', payload) })
+  .on("UPDATE", (payload) => {
+    console.log("Update received!", payload);
+  });
 ```
 
 - Listen to a specific column's value changes
@@ -147,11 +149,12 @@ var allUsersUpdateChanges = socket
 ```js
 // Listen to all changes to user ID 99
 var allUserId99Changes = socket
-  .channel('realtime:public:users:id=eq.99')
+  .channel("realtime:public:users:id=eq.99")
   .join()
-  .on('*', payload => { console.log('Change received!', payload) })
+  .on("*", (payload) => {
+    console.log("Change received!", payload);
+  });
 ```
-
 
 ## Server
 
@@ -199,6 +202,8 @@ SECURE_CHANNELS         # {string}      (options: 'true'/'false') Enable/Disable
 JWT_SECRET              # {string}      HS algorithm octet key (e.g. "95x0oR8jq9unl9pOIx"). Only required if SECURE_CHANNELS is set to true.
 JWT_CLAIM_VALIDATORS    # {string}      Expected claim key/value pairs compared to JWT claims via equality checks in order to validate JWT. e.g. '{"iss": "Issuer", "nbf": 1610078130}'. This is optional but encouraged.
 REALTIME_HOSTS           # {string}      Host names with scheme to set allowed origins in production
+MAX_REPLICATION_LAG_MB  # {number}      If set, when the replication lag exceeds MAX_REPLICATION_LAG_MB (value must be a positive integer in megabytes), then replication slot is dropped, Realtime is restarted, and a new slot is created. Warning: setting MAX_REPLICATION_SLOT_MB could cause database changes to be lost when the replication slot is dropped.
+EXPOSE_METRICS          # {string}      (options: 'true'/'false') Expose Prometheus metrics at '/metrics' endpoint. Currently supports active websocket connection and active topic subscription totals. Defaults to 'true' in development and 'false' in production.
 ```
 
 **EXAMPLE: RUNNING SERVER WITH ALL OPTIONS**
@@ -217,35 +222,36 @@ docker run                                                       \
   -e SECURE_CHANNELS='true'                                      \
   -e JWT_SECRET='SOMETHING_SUPER_SECRET'                         \
   -e JWT_CLAIM_VALIDATORS='{"iss": "Issuer", "nbf": 1610078130}' \
+  -e MAX_REPLICATION_LAG_MB=1000                                 \
   -p 4000:4000                                                   \
   supabase/realtime
 ```
 
-
 ## Websocket Connection Authorization
 
 Websocket connections are authorized via symmetric JWT verification. Only supports JWTs signed with the following algorithms:
-  - HS256
-  - HS384
-  - HS512
+
+- HS256
+- HS384
+- HS512
 
 Verify JWT claims by setting JWT_CLAIM_VALIDATORS:
 
-  > e.g. {'iss': 'Issuer', 'nbf': 1610078130}
-  >
-  > Then JWT's "iss" value must equal "Issuer" and "nbf" value must equal 1610078130.
+> e.g. {'iss': 'Issuer', 'nbf': 1610078130}
+>
+> Then JWT's "iss" value must equal "Issuer" and "nbf" value must equal 1610078130.
 
-**NOTE:** JWT expiration is checked automatically. 
+**NOTE:** JWT expiration is checked automatically.
 
 **Development**: Channels are not secure by default. Set SECURE_CHANNELS to `true` to test JWT verification locally.
 
 **Production**: Channels are secure by default and you must set JWT_SECRET. Set SECURE_CHANNELS to `false` to proceed without checking authorization.
 
+**Authorizing Client Connection**: You can pass in the JWT by following the instructions under **Usage** in the [@supabase/realtime-js](https://github.com/supabase/realtime-js) client library or as query param in the WebSocket URL (e.g. `wss://abc.supabase.co/realtime/v1/websocket?vsn=1.0.0&apikey=jwt`).
 
 ## License
 
 This repo is licensed under Apache 2.0.
-
 
 ## Credits
 
@@ -253,13 +259,11 @@ This repo is licensed under Apache 2.0.
 - [Cainophile](https://github.com/cainophile/cainophile) & [PgoutputDecoder](https://github.com/cainophile/pgoutput_decoder) - A lot of this implementation leveraged the work already done in the Cainophile and PgoutputDecoder libraries.
 - [Phoenix Channels Client](https://github.com/mcampa/phoenix-channels) - [@supabase/realtime-js](https://github.com/supabase/realtime-js) client library is ported from the Phoenix Channels Client library.
 
-
 ## Sponsors
 
 We are building the features of Firebase using enterprise-grade, open source products. We support existing communities wherever possible, and if the products don’t exist we build them and open source them ourselves.
 
 [![New Sponsor][new-sponsor-image]][new-sponsor-url]
-
 
 [new-sponsor-image]: https://user-images.githubusercontent.com/10214025/90518111-e74bbb00-e198-11ea-8f88-c9e3c1aa4b5b.png
 [new-sponsor-url]: https://github.com/sponsors/supabase

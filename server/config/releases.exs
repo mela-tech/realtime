@@ -14,6 +14,11 @@ publications = System.get_env("PUBLICATIONS", "[\"supabase_realtime\"]")
 slot_name = System.get_env("SLOT_NAME") || :temporary
 configuration_file = System.get_env("CONFIGURATION_FILE")
 
+# If the replication lag exceeds the set MAX_REPLICATION_LAG_MB (make sure the value is a positive integer in megabytes) value
+# then replication slot named SLOT_NAME (e.g. "realtime") will be dropped and Realtime will
+# restart with a new slot.
+max_replication_lag_in_mb = String.to_integer(System.get_env("MAX_REPLICATION_LAG_MB", "0"))
+
 # Channels are not secured by default in development and
 # are secured by default in production.
 secure_channels = System.get_env("SECURE_CHANNELS", "true") != "false"
@@ -46,6 +51,10 @@ db_ip_version =
   %{"ipv4" => :inet, "ipv6" => :inet6}
   |> Map.fetch(System.get_env("DB_IP_VERSION", "") |> String.downcase())
 
+# Expose Prometheus metrics
+# Defaults to true in development and false in production
+expose_metrics = System.get_env("EXPOSE_METRICS", "false") == "true"
+
 config :realtime,
   app_port: app_port,
   db_host: db_host,
@@ -60,9 +69,14 @@ config :realtime,
   configuration_file: configuration_file,
   secure_channels: secure_channels,
   jwt_secret: jwt_secret,
-  jwt_claim_validators: jwt_claim_validators
+  jwt_claim_validators: jwt_claim_validators,
+  max_replication_lag_in_mb: max_replication_lag_in_mb,
+  expose_metrics: expose_metrics
 
 config :realtime, RealtimeWeb.Endpoint,
   http: [:inet6, port: app_port],
   pubsub_server: Realtime.PubSub,
   secret_key_base: session_secret_key_base
+
+config :realtime, Realtime.Metrics.PromEx,
+  disabled: !expose_metrics
